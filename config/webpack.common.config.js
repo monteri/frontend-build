@@ -43,7 +43,6 @@ module.exports = {
   resolve: {
     alias: {
       'env.config': path.resolve(process.cwd(), './env.config'),
-      ...getOverrides(),
     },
     fallback: {
       // This causes the system to return an empty object if it can't find an env.config.js file in
