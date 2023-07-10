@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const webpack = require('webpack');
 
 function getOverrides() {
   const currentMfe = path.basename(process.cwd())
@@ -8,20 +8,21 @@ function getOverrides() {
   const overrides = [];
 
   function processDirectory(directory) {
-    const objects = fs.readdirSync(directory);
+    const files = fs.readdirSync(directory);
 
-    objects.forEach((object) => {
-      const objectPath = path.join(directory, object);
-      const stats = fs.statSync(objectPath);
+    files.forEach((file) => {
+      const filePath = path.join(directory, file);
+      const stats = fs.statSync(filePath);
 
-      if (stats.isDirectory()) {
-        const relativePath = path.relative(overridesPath, objectPath);
+      if (stats.isFile()) {
+        const relativePath = path.relative(overridesPath, filePath);
         const originalPath = path.join(process.cwd(), relativePath);
         overrides.push({
-          from: objectPath,
+          from: filePath,
           to: originalPath,
         })
-        processDirectory(objectPath);
+      } else if (stats.isDirectory()) {
+        processDirectory(filePath);
       }
     });
   }
@@ -51,15 +52,8 @@ module.exports = {
     extensions: ['.js', '.jsx'],
   },
   plugins: [
-    new CopyWebpackPlugin({
-      patterns: [
-        new webpack.NormalModuleReplacementPlugin(
-          ...getOverrides().map(({ originalModule, replacement }) => ({
-            resourceRegExp: new RegExp(originalModule),
-            newResource: replacement,
-          }))
-        ),
-      ],
-    }),
+    ...getOverrides().map(({ from, to }) => new webpack.NormalModuleReplacementPlugin(
+      new RegExp(to), from,
+    )),
   ],
 };
