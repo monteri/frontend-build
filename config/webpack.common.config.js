@@ -8,21 +8,20 @@ function getOverrides() {
   const overrides = [];
 
   function processDirectory(directory) {
-    const files = fs.readdirSync(directory);
+    const objects = fs.readdirSync(directory);
 
-    files.forEach((file) => {
-      const filePath = path.join(directory, file);
-      const stats = fs.statSync(filePath);
+    objects.forEach((object) => {
+      const objectPath = path.join(directory, object);
+      const stats = fs.statSync(objectPath);
 
-      if (stats.isFile()) {
-        const relativePath = path.relative(overridesPath, filePath);
+      if (stats.isDirectory()) {
+        const relativePath = path.relative(overridesPath, objectPath);
         const originalPath = path.join(process.cwd(), relativePath);
         overrides.push({
-          from: filePath,
+          from: objectPath,
           to: originalPath,
         })
-      } else if (stats.isDirectory()) {
-        processDirectory(filePath); // Recursively process subdirectories
+        processDirectory(objectPath);
       }
     });
   }
