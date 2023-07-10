@@ -53,7 +53,12 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        ...getOverrides()
+        new webpack.NormalModuleReplacementPlugin(
+          ...getOverrides().map(({ originalModule, replacement }) => ({
+            resourceRegExp: new RegExp(originalModule),
+            newResource: replacement,
+          }))
+        ),
       ],
     }),
   ],
